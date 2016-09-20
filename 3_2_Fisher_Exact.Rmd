@@ -1,0 +1,85 @@
+---
+title: "Fisher Exact Test with 8 Units"
+author: "Adrian Goedeckemeyer"
+date: "September 20, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Code Debugging
+
+Study the code on this Gist (https://gist.github.com/anonymous/6402173445318e816a2ce48815a943f5). It was written to implement a simple Fisher Exact Test involving 8 paired units (4 treated and 4 control). Random assignment was pairwise: a coin was flipped to determine assignment for A and B; another was flipped for C and D, another for E and F, and another for G and H. There are at least two bugs in this code: find and fix them. Explore the commands at the bottom (running “plot”, “hist”, “length”, and “quantile”), and make sure you know what they mean and how they work. Try to figure out why they are there.
+
+
+```{r cars}
+city.names <- c("A", "B", "C", "D", "E", "F", "G", "H")
+observed.turnout = c(18, 30, 14, 52, 24, 29, 48, 49)
+
+observed.diffmeans <- mean(observed.turnout[c(2,4,6,8)]) - 
+  mean(observed.turnout[c(1,3,5,7)])
+
+print(observed.diffmeans)
+
+foo <- as.data.frame(observed.turnout, row.names = city.names)
+```
+I had to make a correction above: The original code said `foo <- as.data.frame(city.names, observed.turnout)` which didn't properly define what the name vector was
+
+```{r}
+# Assignment function
+assignment <- function() {
+  # Four coin flips, establishing random assignment
+  assig <- matrix(nrow=8) #Establish Size of Matrix
+  assig[1:2,] <- foo[sample(1:2),]
+  assig[3:4,]  <- foo[sample(3:4),]
+  assig[5:6,]  <- foo[sample(5:6),]
+  assig[7:8,]  <- foo[sample(7:8),]
+  
+  treatment.group   <- assig[c(1,3,5,7),]
+  control.group     <- assig[c(2,4,6,8),]
+  
+  return(mean(treatment.group) - mean(control.group))# removed indexis, these are simply lists
+}
+```
+The assignment mechanism needed some fixes. Making sure a matrix with correct dimensions existed and storing treatment and control in 1-Dim voctors did the trick
+
+```{r}
+# Iterating the Assignment function
+iter.RI <- function(iterations = 100000) {
+  for (i in 1:iterations) 
+  {
+    storage.vector[i] <- assignment()
+  }
+  return(storage.vector) #only return after 100000 iterations are done
+}
+```
+The iteration function should only return the storage.vector after all iterations are done
+
+```{r}
+storage.vector <- NULL
+results <- iter.RI()
+```
+
+# Exploring the results
+
+Quantile cuts the numbers in our numeric vector in percentile parts at the two given probabilities (95% and 97.5%)
+
+length(unique) tells us how many unique results we observed
+
+hist shows us a distribution and frequency of these unique results
+
+plot(density) does the same thing in a continuous graph
+
+The abline added shows us where the Nullhypothesis of Effect = 5 would be positioned
+```{r}
+quantile(results, probs = c(0.95, 0.975)) #should be probs, but prob worked as well
+
+length(unique(results))
+
+hist(results)
+plot(density(results))
+abline(v = 5, lwd = 2, col = "red")
+```
+
