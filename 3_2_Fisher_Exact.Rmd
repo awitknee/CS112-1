@@ -16,7 +16,7 @@ Study the code on this Gist (https://gist.github.com/anonymous/6402173445318e816
 
 ```{r cars}
 city.names <- c("A", "B", "C", "D", "E", "F", "G", "H")
-observed.turnout = c(18, 30, 14, 52, 24, 29, 48, 49)
+observed.turnout = c(17, 30, 13, 55, 26, 29, 48, 43)
 
 observed.diffmeans <- mean(observed.turnout[c(2,4,6,8)]) - 
   mean(observed.turnout[c(1,3,5,7)])
@@ -80,6 +80,6 @@ length(unique(results))
 
 hist(results)
 plot(density(results))
-abline(v = 5, lwd = 2, col = "red")
+abline(v = 13.12, lwd = 2, col = "red")
 ```
 

@@ -1,0 +1,63 @@
+---
+title: "Exp Treatment Assignments"
+author: "Adrian Goedeckemeyer"
+date: "9/22/2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Familiarize yourself with the “experiment()” function available from this Gist page, and understand how it works. Use this code to simulate treatment assignment for the two blocks (male/female) of units given in Example II-8 (page 68), using the propensity scores as the vector.of.probabilities. We will be using this code in class.
+Come to class having run the code on the Gist page, so that the function and the two vectors (women.children and men.income) are ready to use on your computer. Explore those two vectors (e.g., identify the minimum and maximum values, and plot their histograms).
+
+
+```{r}
+storage.vector <- NA
+
+# Function that assigns treatment/control depending on 
+# propensity scores (assignment probabilities)
+experiment <- function(vector.of.probabilities = NULL) {
+  k = 0
+  for (i in 1:length(vector.of.probabilities)) {
+    if(
+      sample(x = c(1,0), size = 1, prob = c(vector.of.probabilities[i], 
+                                            1 - vector.of.probabilities[i])) == 1) {
+      storage.vector[k] <- i
+      k = k + 1
+    }
+  }
+  return(list(treated.units = storage.vector, 
+              control.units = (1:(length(vector.of.probabilities)))[-storage.vector]))
+}
+
+set.seed(12345)
+men.income <- round(abs(exp(rnorm(1000, 5, 1))))
+women.children <- round(sqrt(abs((rnorm(1000, 12, 100))))) #was missing bracket
+```
+Statistics for men.income and women.children
+```{r}
+summary(men.income)
+summary(women.children)
+```
+Histograms
+```{r}
+hist(men.income, breaks=50)
+hist(women.children, breaks=50)
+```
+
+# Experiment from Example II-8 (page 68): Treatment Assignment
+
+## Men
+
+```{r}
+experiment(vector.of.probabilities = c(.63, .40, .38, .44, .41))
+```
+
+## Women
+
+```{r}
+experiment(vector.of.probabilities = c(.68, .42, .73, .79))
+```
+
