@@ -2,7 +2,7 @@
 title: "Exp Treatment Assignments"
 author: "Adrian Goedeckemeyer"
 date: "9/22/2016"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}

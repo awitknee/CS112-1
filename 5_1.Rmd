@@ -1,0 +1,76 @@
+---
+title: "Genetic Matching on Lalonde and DW"
+author: "Adrian Goedeckemeyer"
+date: "9/30/2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assignment
+
+### Comparing the two Datasets
+
+Go to Rajeev Dehejia’s website (http://users.nber.org/\~rdehejia/nswdata2.html) and download the NSW data files labelled 
+(i) Lalonde sample
+(ii) Dehejia-Wahba sample
+
+Calculate the difference in means of the outcome (re78) in both samples and run balance tests (t-tests) for key covariates. 
+
+Are the estimated causal effects the same or similar? (Hint: they should not be the same, because the underlying treatment groups are very different.) 
+
+Are the covariates well-balanced?
+
+### Different Matching Algorithms on PSID and CPS Data
+
+Now download the PSID and CPS data files and attempt to use Mahalanobis, propensity score, and genetic matching to reconstruct a matched data set in R (e.g., matchingnswre74_treated.txt), and you must use the “Match”, “GenMatch”, and “MatchBalance” functions—see the relevant help files. 
+
+What are the properties of your matched data set? 
+
+Are you able to recover the benchmark experimental estimate obtained in the randomized experiment?
+
+```{r}
+library(foreign)
+lalonde = read.dta("~/Downloads/nsw.dta")
+summary(lalonde)
+
+dw = read.dta("~/Downloads/nsw_dw.dta")
+summary(dw)
+```
+i) Difference in means:
+```{r}
+mean(lalonde$re78)-mean(dw$re78)
+mean(lalonde$re78[lalonde$treat==1])-mean(dw$re78[dw$treat==1])
+mean(lalonde$re78[lalonde$treat==0])-mean(dw$re78[dw$treat==0])
+```
+
+Compare a few t-tests for covariates:
+```{r}
+t.test(dw$re78, dw$married)
+t.test(lalonde$re78, lalonde$married)
+
+t.test(dw$re78, dw$education)
+t.test(lalonde$re78, lalonde$education)
+
+t.test(dw$re78, dw$age)
+t.test(lalonde$re78, lalonde$age)
+```
+
+PSID and CPS Data
+```{r}
+require(Matching)
+psid = read.dta("~/Downloads/psid_controls.dta")
+summary(psid)
+
+cps = read.dta("~/Downloads/cps_controls.dta")
+summary(cps)
+```
+
+##Mahalanobis
+
+```{r}
+mahalanobis.match = Match(dw$re78, dw$treat, dw[c(2,3,4,5,6,7,8,9)])
+```
+
