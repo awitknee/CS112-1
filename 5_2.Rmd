@@ -1,0 +1,45 @@
+---
+title: "Sensitivity Analysis on Dehejia Wahba"
+author: "Adrian Goedeckemeyer"
+date: "10/4/2016"
+output: html_document
+---
+
+## Matching and rbounds package
+
+```{r}
+require("Matching")
+require("rbounds")
+require("foreign")
+dw = read.dta("~/Downloads/nsw_dw.dta")
+summary(dw)
+attach(dw)
+```
+
+## Sensitivity Results for Data without Matching
+
+```{r}
+Y <- dw$re78 #the outcome of interest
+Tr <- dw$treat #the treatment of interest
+X <- cbind(age, education, black, hispanic, married, nodegree, re74, re75)
+match1 =  Match(Y=Y, Tr=Tr, X=X)
+summary(match1)
+
+psens(match1, Gamma=1.5, GammaInc=.1)
+hlsens(match1, Gamma=1.5, GammaInc=.1, .1)
+```
+
+## GenMatching on Data
+
+```{r}
+BalanceMat <- cbind(age, education, black, hispanic, married, nodegree, re74, re75)
+genmatch1 <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, pop.size=50, data.type.int=FALSE, print=0, replace=FALSE)
+match2 <- Match(Y=Y, Tr=Tr, X=X, Weight.matrix=genmatch1, replace=FALSE)
+summary(match2)
+```
+
+## Sensitivity Analysis on GenMatched Data
+```{r}
+psens(match2, Gamma=1.5, GammaInc=.1)
+hlsens(match2, Gamma=1.5, GammaInc=.1, .1)
+```
