@@ -45,3 +45,19 @@ treatment_group <- c(70,66,78.9)
 fisher(treatment_group, control_group, 0, 100)
 ```
 
+# Gerber Green Imai
+
+```{r}
+require("Matching")
+summary(GerberGreenImai)
+Y <- GerberGreenImai$VOTED98 #the outcome of interest
+Tr <- GerberGreenImai$PHN.C1 #the treatment of interest
+X <- cbind(GerberGreenImai$PERSONS, GerberGreenImai$VOTE96.1 ,GerberGreenImai$NEW ,GerberGreenImai$MAJORPTY ,GerberGreenImai$AGE ,GerberGreenImai$WARD)
+BalanceMat <- cbind(GerberGreenImai$PERSONS, GerberGreenImai$VOTE96.1 ,GerberGreenImai$NEW ,GerberGreenImai$MAJORPTY ,GerberGreenImai$AGE ,GerberGreenImai$WARD)
+
+genmatch <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, pop.size=50, data.type.int=FALSE, print=0, replace=FALSE)
+match <- Match(Y=Y, Tr=Tr, X=X, Weight.matrix=genmatch, replace=FALSE)
+summary(match)
+mb <- MatchBalance(GerberGreenImai$PHN.C1 ~ GerberGreenImai$PERSONS + GerberGreenImai$VOTE96.1 + GerberGreenImai$NEW + GerberGreenImai$MAJORPTY + GerberGreenImai$AGE + GerberGreenImai$WARD + GerberGreenImai$AGE2, match.out=match, nboots=500)
+```
+
