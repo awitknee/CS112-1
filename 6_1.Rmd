@@ -57,7 +57,7 @@ X <- cbind(GerberGreenImai$PERSONS, GerberGreenImai$VOTE96.1 ,GerberGreenImai$NE
 BalanceMat <- cbind(GerberGreenImai$PERSONS, GerberGreenImai$VOTE96.1 ,GerberGreenImai$NEW ,GerberGreenImai$MAJORPTY ,GerberGreenImai$AGE ,GerberGreenImai$WARD)
 
 genmatch <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, pop.size=50, data.type.int=FALSE, print=0, replace=FALSE)
-match <- Match(Y=Y, Tr=Tr, X=X, Weight.matrix=genmatch, replace=FALSE)
+match <- Match(Y=Y, Tr=Tr, X=X, Weight.matrix=genmatch, replace=FALSE, caliper = c(10,10,10,10,0.1,10))
 summary(match)
 mb <- MatchBalance(GerberGreenImai$PHN.C1 ~ GerberGreenImai$PERSONS + GerberGreenImai$VOTE96.1 + GerberGreenImai$NEW + GerberGreenImai$MAJORPTY + GerberGreenImai$AGE + GerberGreenImai$WARD + GerberGreenImai$AGE2, match.out=match, nboots=500)
 ```

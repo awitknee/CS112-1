@@ -1,0 +1,38 @@
+---
+title: "Quantile Regression"
+author: "Adrian Goedeckemeyer"
+date: "10/10/2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Session 6.2
+
+Use the raw Lalonde data set to experiment with quantile regression using Koenker’s ‘quantreg’ library in R. Then use one of your matched/balanced data sets, and obtain quantile estimates two ways: (a) quantreg; (b) by subtracting the same quantile (e.g., the median, or 0.5 quantile) of the matched control (Y0) distribution from the matched treatment (Y1) distribution. For each technique, produce a figure showing the quantile effects from quantiles 0.05 to 0.95. Compare the two sets of quantile estimates and assess their equivalence.
+
+```{r}
+require(Matching)
+require(quantreg)
+data(lalonde)
+```
+
+```{r}
+attach(lalonde)
+Y <- re78
+X <- cbind(age, educ, black, hisp, married, nodegr, re74, re75, u74, u75)
+BalanceMat <- X
+Tr <- treat
+gmout <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size=100)
+match <- Match(Y=Y, Tr=Tr, X=X, Weight.matrix=gmout, replace=FALSE)
+mb <- MatchBalance(Tr ~ X, match.out=match, nboots=500)
+qs <- 1:10/10
+qs <- qs -.05
+qr1 <- rq(Y ~ X, tau=qs)
+plot(qr1)
+
+qr2 <- rq(Y ~ X, data=lalonde[match$index.treated,], tau=qs)
+```
+
