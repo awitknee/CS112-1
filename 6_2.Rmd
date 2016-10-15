@@ -34,5 +34,7 @@ qr1 <- rq(Y ~ X, tau=qs)
 plot(qr1)
 
 qr2 <- rq(Y ~ X, data=lalonde[match$index.treated,], tau=qs)
+qr2 <- rq(Y ~ X, data=lalonde[match$index.control,], tau=qs)
+
 ```
 
