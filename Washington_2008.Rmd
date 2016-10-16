@@ -11,11 +11,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Genetic Matching on the Washington (2008) case
 
-To investigate wether having a daughter has an effect on decision making of members in the US House of Representative we are performing Genetic Matching on a Dataset aquired by sociologists in 2008. 
+To investigate whether having a daughter has an effect on decision making of members in the US House of Representative we are performing Genetic Matching on a Dataset aquired by sociologists in 2008. 
 
-We are controlling for several discrete variables (race, gender, political party, and religion) and continuous variables (seniority and its square, age and its square, and Democratic vote share). 
-
-We will not be including demographic data of the legislators states (percentage females, college graduates), even though they are available in the dataset as they would introduce too many cofounders that are basically impossible to balance. A quick test (not included here) showed incredible low p-values when they were included. The democratic vote share variable will account for some of these indirectly, and we will perform sensitivity analysis on our best result to check how strong the influence of further covariates could be on our results.
+We are controlling for several discrete variables (race, gender, political party, and religion) and continuous variables (seniority, age and Democratic vote share). 
 
 The outcome variable measures the agreement of the representatives votes with positions of the National Organization of Women on a range from 0 to 100.
 
@@ -26,6 +24,7 @@ require(foreign)
 require(Matching)
 washington = read.dta('~/Downloads/basic.dta')
 summary(washington)
+set.seed(123)
 ```
 
 ### Prepare Variables and Break up Key confounders
@@ -48,7 +47,7 @@ r_other <- rgroup == 4
 female <- female == 1
 white <- white == 1
 
-X <- cbind("democrat" <- p_dem, "protestant" <- r_prot, "nonreligious" <- r_none, "catholic" <- r_cath, "Other christian" <- r_christ, "Other religion" <- r_other, "White" <- white, "Female" <- female, "Democartic Vote Share" <- demvote, "Length of Service" <- srvlng, "Age" <- age)
+X <- cbind("democrat" = p_dem, "protestant" = r_prot, "nonreligious" = r_none, "catholic" = r_cath, "Other christian" = r_christ, "Other religion" = r_other, "White" = white, "Female" = female, "Democartic Vote Share" = demvote, "Length of Service" = srvlng, "Age" = age)
 BalanceMat <- X
 ```
 
@@ -56,43 +55,73 @@ BalanceMat <- X
 ### Genetic Matching Attempt 1
 
 ```{r}
-gmout <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size=100)
+gmout <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size=1000, max.generations = 500, wait.generations = 15)
 match <- Match(Y=Y, Tr=Tr, X=X, Weight.matrix=gmout)
 summary(match)
-mb <- MatchBalance(Tr ~ BalanceMat, match.out=match, nboots=500)
+mb <- MatchBalance(Tr ~ p_dem + r_prot + r_none + r_cath + r_christ + r_other + white + female + demvote + srvlng + age, match.out=match, nboots=1000)
 ```
 
-In this attempt we do not reach satisfactory Balance, variable 8 (female) performs worst with a p-value of only 0.15. Other values also do not achieve perfect balance. 
+In this attempt we do not reach satisfactory Balance, variable r_other performs worst with a p-value of only 0.15. Other values also do not achieve perfect balance. 
 
 ### Genetic Matching Attempt 2
 
 To improve on the previous model I will add some interaction variables and sqaured values.
 
 ```{r}
-X <- cbind("democrat" <- p_dem, "protestant" <- r_prot, "nonreligious" <- r_none, "catholic" <- r_cath, "Other christian" <- r_christ, "Other religion" <- r_other, "White" <- white, "Female" <- female, "Democartic Vote Share" <- demvote, "Length of Service" <- srvlng, "Age" <- age, "Age^2" <- I(age^2), "Length of service^2" <- I(srvlng^2), I(p_dem*demvote))
-BalanceMat <- cbind("democrat" <- p_dem, "protestant" <- r_prot, "nonreligious" <- r_none, "catholic" <- r_cath, "Other christian" <- r_christ, "Other religion" <- r_other, "White" <- white, "Female" <- female, "Democartic Vote Share" <- demvote, "Length of Service" <- srvlng, "Age" <- age)
-gmout <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size=100)
-match <- Match(Y=Y, Tr=Tr, X=X, Weight.matrix=gmout)
-summary(match)
-mb <- MatchBalance(Tr ~ BalanceMat, match.out=match, nboots=500)
+X <- cbind("democrat" = p_dem, "protestant" = r_prot, "nonreligious" = r_none, "catholic" = r_cath, "Other christian" = r_christ, "Other religion" = r_other, "White" = white, "Female" = female, "Democartic Vote Share" = demvote, "Length of Service" = srvlng, "Age" = age, "Age^2" = I(age^2), "Length of service^2" = I(srvlng^2), I(p_dem*demvote))
+BalanceMat <- cbind("democrat" = p_dem, "protestant" = r_prot, "nonreligious" = r_none, "catholic" = r_cath, "Other christian" = r_christ, "Other religion" = r_other, "White" = white, "Female" = female, "Democartic Vote Share" = demvote, "Length of Service" = srvlng, "Age" = age)
+gmout2 <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size=1000, max.generations = 500, wait.generations = 15)
+match2 <- Match(Y=Y, Tr=Tr, X=X, Weight.matrix=gmout2)
+summary(match2)
+mb <- MatchBalance(Tr ~ p_dem + r_prot + r_none + r_cath + r_christ + r_other + white + female + demvote + srvlng + age, match.out=match2, nboots=1000)
 ```
 
-We can see, the minimum p-value is already greatly improved to 0.31 for "Other Christian". We will try again.
+We can see, the minimum p-value is already greatly improved to 0.31 for some religion variables and gender. We will try again.
 
 ### Genetic Matching Attempt 3:
 
-To further increase our balance, I am introducing a caliper. This cliper specifies the maximum allowed distance between matched observations for each variable. I chose lower caliper values for variables that had trouble matching previously and higher ones for well-matched variables. This will decrease the number of matched observations, but should increase
+To further increase our balance, I am introducing a caliper. This caliper specifies the maximum allowed distance between matched observations for each variable. I chose lower caliper values for variables that had trouble matching previously and higher ones for well-matched variables. This will decrease the number of matched observations, but should increase Balance.
 
 ```{r}
-X <- cbind("democrat" <- p_dem,  "protestant" <- r_prot, "nonreligious" <- r_none, "catholic" <- r_cath, "Other christian" <- r_christ, "Other religion" <- r_other, "White" <- white, "Female" <- female, "Democartic Vote Share" <- demvote, "Length of Service" <- srvlng, "Age" <- age, "Age^2" <- I(age^2), "Length of service^2" <- I(srvlng^2), I(p_dem*demvote))
-BalanceMat <- cbind("democrat" <- p_dem, "protestant" <- r_prot, "nonreligious" <- r_none, "catholic" <- r_cath, "Other christian" <- r_christ, "Other religion" <- r_other, "White" <- white, "Female" <- female, "Democartic Vote Share" <- demvote, "Length of Service" <- srvlng, "Age" <- age)
-gmout <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size=150, max.generations = 50, wait.generations = 5, caliper = c(2,.5,2,2,2,.2,1,4,.4,.4,.3,.3,1,.6))
-match <- Match(Y=Y, Tr=Tr, X=X, Weight.matrix=gmout,caliper = c(2,.5,2,2,2,.2,1,4,.4,.4,.3,.3,1,.6))
-summary(match)
-mb <- MatchBalance(Tr ~ BalanceMat, match.out=match, nboots=500)
+gmout3 <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size=1000, max.generations = 500, wait.generations = 15, caliper = c(2,.5,2,2,2,.2,1,4,.4,.4,.3,.3,1,.6))
+match3 <- Match(Y=Y, Tr=Tr, X=X, Weight.matrix=gmout3,caliper = c(2,.5,2,2,2,.2,1,4,.4,.4,.3,.3,1,.6))
 ```
 
-The caliper greatly improves our matching balance up to .58 as the lowest p-value with 7 variables perfectly matched. Worst balance is achieved for Age. It is worth pointing out that neither treatment not control group include any members that identify as "Other Christian", but this is not a big problem, as our full treatment group did not include any of this category either.
+#### Matching Results 3
+```{r}
+summary(match3)
+```
+
+#### Balance 3
+```{r}
+mb3 <- MatchBalance(Tr ~ p_dem + r_prot + r_none + r_cath + r_christ + r_other + white + female + demvote + srvlng + age, match.out=match3, nboots=1000)
+```
+
+The caliper greatly improves our matching balance up to .58 as the lowest p-value. 7 variables are perfectly matched. Worst balance is achieved for Age. It is worth pointing out that neither treatment not control group include any members that identify as "Other Christian", but this is not a big problem, as our original full treatment group did not include any of this category either.
+
+#### Some plots to illustrate the less balanced variables before and after matching:
+
+```{r}
+par(mfrow = c(1,2))
+ 
+plot(density(age[anygirls==1], bw = 2), lwd = 3, col = "red")
+lines(density(age[anygirls==0], bw = 2), lwd = 2, col = "blue")
+
+plot(density(age[match3$index.treated], bw = 2), lwd = 3, col = "red")
+lines(density(age[match3$index.control], bw = 2), lwd = 2, col = "blue")
+
+plot(density(demvote[anygirls==1], bw = 2), lwd = 3, col = "red")
+lines(density(demvote[anygirls==0], bw = 2), lwd = 2, col = "blue")
+
+plot(density(demvote[match3$index.treated], bw = 2), lwd = 3, col = "red")
+lines(density(demvote[match3$index.control], bw = 2), lwd = 2, col = "blue")
+
+plot(density(srvlng[anygirls==1], bw = 2), lwd = 3, col = "red")
+lines(density(srvlng[anygirls==0], bw = 2), lwd = 2, col = "blue")
+
+plot(density(srvlng[match3$index.treated], bw = 2), lwd = 3, col = "red")
+lines(density(srvlng[match3$index.control], bw = 2), lwd = 2, col = "blue")
+```
 
 We will call these results satisfactory for now and continue to a sensitivity analysis:
 
@@ -100,8 +129,9 @@ We will call these results satisfactory for now and continue to a sensitivity an
 
 ```{r}
 require(rbounds)
-psens(match, Gamma = 1.6, GammaInc = 0.05)
+psens(match3, Gamma = 1.6, GammaInc = 0.05)
 ```
+
 Generally we can't be very happy with these Sensitivity Results, a p = 0.31 even when Gamma = 1 is a high value for odds of differential assignment due to an unobserved factor that has no influence on assignment. When Gamma rises we soon have much higher p-values.
 
 #### Compared to Unmatched Tr vs Ctrl
@@ -112,15 +142,62 @@ psens(x=nowtot[Tr==1], y=nowtot[Tr==0], Gamma = 1.6, GammaInc = 0.05)
 
 These results are definitely much much worse though.
 
+### Looking at the Data
+
+I will end with a few graphics that illustrate some aspects of the data that might have lead to difficulties in analysis.
+
+#### Numgirls against Nowtot (colored by party, green is dem)
+```{r}
+par(mfrow = c(1,1))
+plot(jitter(nowtot), jitter(ngirls), col = p_dem+2)
+```
+
+We see party affiliation has a huge influence on voting preference, while numgirls has less. But we also see that republicans are more likely to have a huge number of girls (7) while they are very low on the nowtot scale.
+
+The two following graphs illustrate a bit further
+
+#### Density of Dem and Rep on Nowtot
+
+```{r}
+plot(density(nowtot[p_dem==0]), col="red")
+lines(density(nowtot[p_dem]), col="blue")
+```
+
+We see huge difference between republicans and democrats
+
+#### Density of Dem and Rep on numgirls
+
+```{r}
+plot(density(ngirls[p_dem==0]), col="red")
+lines(density(ngirls[p_dem]), col="blue")
+```
+
+Unsuprisingly this has less difference between the two groups, even though the right tail is thicker for republicans.
+
+#### Density on nowtot for girls vs nogirls
+
+```{r}
+par(mfrow = c(1,2))
+plot(density(nowtot[anygirls]), col="purple")
+lines(density(nowtot[anygirls==0]), col="black")
+
+plot(density(nowtot[match3$index.treated]), col="purple")
+lines(density(nowtot[match3$index.control]), col="black")
+```
+
+Originally we see a big difference between the two groups
+
+After matching on a few confounders, there is very little difference left, this indicates that a lot of the difference was due to confounding variables.
+
 ### Check Model Dependency (Optional and incomplete)
 
 This part I am still struggeling with, as you might see I am not creating very useful results.
 
 ```{r}
-source('~/Downloads/modelDep.R')
-matched <- washington[!match$index.dropped,]
-mdep0 <- modelDep( nowtot ~ p_dem + r_prot+r_none + r_cath + r_christ + r_other + white + female + demvote + srvlng + age, data=matched, tevar="anygirls")
-summary(mdep0$TE)
+#source('~/Downloads/modelDep.R')
+#matched <- washington[!match3$index.dropped,]
+#mdep0 <- modelDep( nowtot ~ p_dem + nboys + r_prot+r_none + r_cath + r_christ + r_other + white + female + demvote + srvlng + age, data=matched, tevar="anygirls")
+#summary(mdep0$TE)
 #plot(density(mdep0$TE, na.rm=TRUE), xlim=c(-4, 10),  main=sprintf("raw data, L1=%.3f, n=%d",imb$L1$L1,sum(summary(mod)$df[1:2])),xlab="TE estimate")
 
 ```
