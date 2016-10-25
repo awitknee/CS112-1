@@ -1,0 +1,29 @@
+---
+title: "Synthetic Control"
+author: "Adrian Goedeckemeyer"
+date: "10/17/2016"
+output: html_document
+---
+
+# Synthetic Control
+
+## Comparative Politics: German Reunification
+
+```{r}
+require(foreign)
+germany <- read.dta('~/Downloads/repgermany.dta')
+summary(germany)
+```
+
+## Euro and Debt
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+source('~/Downloads/Replication files/Kohler_replication files/analysis.R')
+load('~/Downloads/Replication files/Kohler_replication files/scdata.RData')
+source('~/Downloads/Replication files/Kohler_replication files/euro11.R')
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

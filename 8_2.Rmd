@@ -1,0 +1,80 @@
+---
+title: "8_2 JTPA"
+author: "Adrian Goedeckemeyer"
+date: "10/25/2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Impact of Job Training Partnership Act
+
+```{r}
+require('foreign')
+data = read.dta('~/Downloads/jtpa.dta')
+summary(data)
+```
+
+
+## Check balance of baseline characteristics
+
+```{r}
+plot(density(data$age[data$assignmt==1]), lwd = 3, col = "red")
+lines(density(data$age[data$assignmt==0]), lwd = 2, col = "blue")
+
+plot(density(data$prevearn[data$assignmt==1]), lwd = 3, col = "red")
+lines(density(data$prevearn[data$assignmt==0]), lwd = 2, col = "blue")
+```
+
+Proportion Married, Black, Hispanic btw both groups
+```{r}
+sprintf("%10.5f",sum(data$married==1 & data$assignmt == 1)/sum(data$assignmt == 1))
+sprintf("%10.5f",sum(data$married==1 & data$assignmt == 0)/sum(data$assignmt == 0))
+
+sprintf("%10.5f",sum(data$black==1 & data$assignmt == 1)/sum(data$assignmt == 1))
+sprintf("%10.5f",sum(data$black==1 & data$assignmt == 0)/sum(data$assignmt == 0))
+
+sprintf("%10.5f",sum(data$hispanic==1 & data$assignmt == 1)/sum(data$assignmt == 1))
+sprintf("%10.5f",sum(data$hispanic==1 & data$assignmt == 0)/sum(data$assignmt == 0))
+```
+
+## Compliance
+
+Compliers (treat and control)
+Non-compliers (treat and control)
+
+```{r}
+compl = c()
+compl$tr = sum(data$assignmt==1 & data$training ==1)
+compl$ctr = sum(data$assignmt==0 & data$training ==0)
+
+compl$tr_non = sum(data$assignmt==0 & data$training ==1)
+compl$ctr_no = sum(data$assignmt==1 & data$training ==0)
+compl
+```
+
+## Impact (Intention to Treat effect)
+
+```{r}
+ITT = mean(data$earnings[data$assignmt==1])-mean(data$earnings[data$assignmt==0])
+sprintf("%10.5f",ITT)
+plot(density(data$earnings[data$assignmt==1]), lwd = 3, col = "red")
+lines(density(data$earning[data$assignmt==0]), lwd = 2, col = "blue")
+```
+
+## Rate of Actually Treated in Treatment
+
+```{r}
+compl$rate = compl$tr/ sum(data$assignmt == 1)
+```
+
+## Wald Estimator for Impact
+
+LATE = ITT * Compl_rate
+
+```{r}
+ITT * compl$rate
+```
+
