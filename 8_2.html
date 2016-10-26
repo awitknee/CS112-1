@@ -235,13 +235,13 @@ lines(density(data$earning[data$assignmt==0]), lwd = 2, col = &quot;blue&quot;)<
 </div>
 <div id="rate-of-actually-treated-in-treatment" class="section level2">
 <h2>Rate of Actually Treated in Treatment</h2>
-<pre class="r"><code>compl$rate = compl$tr/ sum(data$assignmt == 1)</code></pre>
+<pre class="r"><code>compl$rate = compl$tr/ sum(data$assignmt == 1) - compl$tr_non / sum(data$assignmt == 0)</code></pre>
 </div>
 <div id="wald-estimator-for-impact" class="section level2">
 <h2>Wald Estimator for Impact</h2>
-<p>LATE = ITT * Compl_rate</p>
-<pre class="r"><code>ITT * compl$rate</code></pre>
-<pre><code>## [1] 743.9452</code></pre>
+<p>LATE = ITT / Compl_rate</p>
+<pre class="r"><code>ITT / compl$rate</code></pre>
+<pre><code>## [1] 1848.829</code></pre>
 </div>
 </div>
 

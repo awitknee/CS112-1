@@ -67,14 +67,14 @@ lines(density(data$earning[data$assignmt==0]), lwd = 2, col = "blue")
 ## Rate of Actually Treated in Treatment
 
 ```{r}
-compl$rate = compl$tr/ sum(data$assignmt == 1)
+compl$rate = compl$tr/ sum(data$assignmt == 1) - compl$tr_non / sum(data$assignmt == 0)
 ```
 
 ## Wald Estimator for Impact
 
-LATE = ITT * Compl_rate
+LATE = ITT / Compl_rate
 
 ```{r}
-ITT * compl$rate
+ITT / compl$rate
 ```
 
