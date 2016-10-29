@@ -1,0 +1,31 @@
+---
+title: "Regression Discontinuity Design"
+author: "Adrian Goedeckemeyer"
+date: "10/29/2016"
+output: html_document
+---
+
+## Regression Discontinuity Design: Online School Admissions
+
+The Fake Online Schools at FBI assign students a rating in their admissions process. This rating is between 0 and 100. Only students with a rating of above 65 get to attend. Everyone that gets admitted attends this prestigious program. From score data and income data 30 years after initial application we estimate the impact of being admitted to the FOS at FBI. 
+
+```{r cars}
+applicants <- matrix()
+
+applicants$score <- rnorm(10000, 50, sd = 25)
+applicants$income_non_admit <- 10000/(1+2.718281828459^(-0.035*applicants$score)) + rnorm(10000, 0, 1000)
+applicants$income_admit <- 3000 + 10000/(1+2.718281828459^(-.035*applicants$score)) + rnorm(10000, 0, 1000)
+plot(applicants$score[applicants$score >= 75], applicants$income_admit[applicants$score >= 75], ylim = c(0, 17000), xlim = c(0,100))
+points(applicants$score[applicants$score < 75], applicants$income_non_admit[applicants$score < 75], col = 4)
+#prev.fit <- lm(applicants$score[applicants$score < 75]~ applicants$income_non_admit[applicants$score < 75])
+#abline(prev.fit)
+abline(v=75, col = 2)
+
+applicants$income <- ifelse(applicants$score >= 75, applicants$income_admit, applicants$income_non_admit)
+```
+
+```{r}
+data <- data.frame("score" <- applicants$score[applicants$score < 100 & applicants$score >0], "income after 30 years" <- applicants$income[applicants$score < 100 & applicants$score >0])
+summary(data)
+write.csv(data, file="data.csv")
+```
