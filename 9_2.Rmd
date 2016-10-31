@@ -42,11 +42,11 @@ income <- ag_data$X.income.after.30.years.....applicants.income.applicants.score
 ```{r}
 data <- read.csv("~/Downloads/myfile.csv")
 summary(data)
-(rdplot(y = data$After, x = data$Initial, title = "RD Plot - House Buying ability", y.label = "Post Class for low ability people", x.label = "Pre Data", c = 100))
-(rdplot(y = data$After, x = data$Initial, binselect = "es", title = "RD Plot - House Buying ability", y.label = "Post Class for low ability people", x.label = "Pre Data", c = 100))
-(rdplot(y = data$After, x = data$Initial, binselect = "es", scale = 5, title = "RD Plot - House Buying ability", y.label = "Post Class for low ability people", x.label = "Pre Data", c = 100))
+(rdplot(y = data$After, x = data$Initial, title = "RD Plot - House Buying ability", y.label = "Post Class for low ability people", x.label = "Pre Data", c = 101))
+(rdplot(y = data$After, x = data$Initial, binselect = "es", title = "RD Plot - House Buying ability", y.label = "Post Class for low ability people", x.label = "Pre Data", c = 101))
+(rdplot(y = data$After, x = data$Initial, binselect = "es", scale = 5, title = "RD Plot - House Buying ability", y.label = "Post Class for low ability people", x.label = "Pre Data", c = 101))
 
-rdrobust(y = data$After, x = data$Initial, all = TRUE, c = 100)
+rdrobust(y = data$After, x = data$Initial, all = TRUE, c = 101)
 ```
 
 
