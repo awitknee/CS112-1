@@ -1,0 +1,52 @@
+---
+title: "Regression Discontinuity"
+author: "Adrian Goedeckemeyer"
+date: "10/31/2016"
+output: html_document
+---
+
+## 9_2 RD Design Example US Senate
+
+
+```{r}
+require(rdrobust)
+data(rdrobust_RDsenate)
+vote <- rdrobust_RDsenate$vote
+margin <- rdrobust_RDsenate$margin
+summary(vote)
+summary(margin)
+(rdplot(y = vote, x = margin, title = "RD Plot - Senate Elections Data", y.label = "Vote Share in Election at time t+1", x.label = "Vote Share in Election at time t"))
+(rdplot(y = vote, x = margin, binselect = "es", title = "RD Plot - Senate Elections Data", y.label = "Vote Share in Election at time t+1", x.label = "Vote Share in Election at time t"))
+(rdplot(y = vote, x = margin, binselect = "es", scale = 5, title = "RD Plot - Senate Elections Data", y.label = "Vote Share in Election at time t+1", x.label = "Vote Share in Election at time t"))
+rdrobust(y = vote, x = margin)
+rdrobust(y = vote, x = margin, all = TRUE)
+rdbwselect(y = vote, x = margin, all = TRUE)
+```
+
+## Own Data
+
+```{r}
+require(foreign)
+ag_data <- read.csv("data.csv")
+summary(ag_data)
+score <- ag_data$X.score.....applicants.score.applicants.score...100...applicants.score...
+income <- ag_data$X.income.after.30.years.....applicants.income.applicants.score...
+(rdplot(y = income, x = score, title = "RD Plot - School Admittance Data", y.label = "Income 30 years after application to FOS at FBI", x.label = "Application Score", c = 75))
+(rdplot(y = income, x = score, binselect = "es", title = "RD Plot - School Admittance Data", y.label = "Income 30 years after application to FOS at FBI", x.label = "Application Score", c = 75))
+(rdplot(y = income, x = score, binselect = "es", scale = 5, title = "RD Plot - School Admittance Data", y.label = "Income 30 years after application to FOS at FBI", x.label = "Application Score", c = 75))
+
+```
+
+## Matt's Data
+
+```{r}
+data <- read.csv("~/Downloads/myfile.csv")
+summary(data)
+(rdplot(y = data$After, x = data$Initial, title = "RD Plot - House Buying ability", y.label = "Post Class for low ability people", x.label = "Pre Data", c = 100))
+(rdplot(y = data$After, x = data$Initial, binselect = "es", title = "RD Plot - House Buying ability", y.label = "Post Class for low ability people", x.label = "Pre Data", c = 100))
+(rdplot(y = data$After, x = data$Initial, binselect = "es", scale = 5, title = "RD Plot - House Buying ability", y.label = "Post Class for low ability people", x.label = "Pre Data", c = 100))
+
+rdrobust(y = data$After, x = data$Initial, all = TRUE, c = 100)
+```
+
+
