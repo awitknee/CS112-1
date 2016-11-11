@@ -40,6 +40,8 @@ plot(adrian_data, col=treat+1)
 
 plot(density(adrian_data$outcome[adrian_data$treat]))
 lines(density(adrian_data$outcome[adrian_data$treat == 0]), col=2)
+library(foreign)
 write.csv(adrian_data, file="adrian_data.csv")
+write.dta(adrian_data, file="adrian_data.dta")
 
 ```
