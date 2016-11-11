@@ -502,6 +502,31 @@ summary(data)</code></pre>
 ## Conventional   -36.7021 2.2538    -16.2842 0.0000 -41.1195 -32.2846
 ## Bias-Corrected -36.8532 2.2538    -16.3512 0.0000 -41.2707 -32.4358
 ## Robust         -36.8532 2.7456    -13.4227 0.0000 -42.2345 -31.4720</code></pre>
+<pre class="r"><code>rdrobust(y = data$After, x = data$Initial, all = TRUE, c = 101, h = 65)</code></pre>
+<pre><code>## Call:
+## rdrobust(y = data$After, x = data$Initial, c = 101, h = 65, all = TRUE)
+## 
+## Summary:
+##                         
+## Number of Obs 10000     
+## BW Type       Manual    
+## Kernel Type   Triangular
+## VCE Type      NN        
+## 
+##                    Left    Right  
+## Number of Obs      5091    4909   
+## Eff. Number of Obs 5091    4909   
+## Order Loc Poly (p) 1       1      
+## Order Bias (q)     2       2      
+## BW Loc Poly (h)    65.0000 65.0000
+## BW Bias (b)        65.0000 65.0000
+## rho (h/b)          1.0000  1.0000 
+## 
+## Estimates:
+##                Coef     Std. Err. z        P&gt;|z|  CI Lower CI Upper
+## Conventional   -37.1673 1.1328    -32.8091 0.0000 -39.3877 -34.9470
+## Bias-Corrected -36.7172 1.1328    -32.4118 0.0000 -38.9375 -34.4969
+## Robust         -36.7172 1.7321    -21.1981 0.0000 -40.1120 -33.3223</code></pre>
 </div>
 
 

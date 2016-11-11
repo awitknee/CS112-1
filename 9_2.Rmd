@@ -34,6 +34,8 @@ income <- ag_data$X.income.after.30.years.....applicants.income.applicants.score
 (rdplot(y = income, x = score, title = "RD Plot - School Admittance Data", y.label = "Income 30 years after application to FOS at FBI", x.label = "Application Score", c = 75))
 (rdplot(y = income, x = score, binselect = "es", title = "RD Plot - School Admittance Data", y.label = "Income 30 years after application to FOS at FBI", x.label = "Application Score", c = 75))
 (rdplot(y = income, x = score, binselect = "es", scale = 5, title = "RD Plot - School Admittance Data", y.label = "Income 30 years after application to FOS at FBI", x.label = "Application Score", c = 75))
+rdrobust(y = income, x = score, all = TRUE, c = 75, h = 65)
+
 
 ```
 
@@ -47,6 +49,8 @@ summary(data)
 (rdplot(y = data$After, x = data$Initial, binselect = "es", scale = 5, title = "RD Plot - House Buying ability", y.label = "Post Class for low ability people", x.label = "Pre Data", c = 101))
 
 rdrobust(y = data$After, x = data$Initial, all = TRUE, c = 101)
+rdrobust(y = data$After, x = data$Initial, all = TRUE, c = 101, h = 65)
+
 ```
 
 

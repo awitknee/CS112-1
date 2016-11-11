@@ -1,0 +1,45 @@
+---
+title: "11_1"
+author: "Adrian Goedeckemeyer"
+date: "11/11/2016"
+output: html_document
+---
+
+## Statistical Learning intro
+
+Creating Data:
+
+Devise a regression (prediction) decision problem. This will require you to generate fake data (using any software you wish) and write a few sentences to accompany the data explaining the context and the decision problem itself.
+IMPORTANT INSTRUCTIONS
+• Your dataset should contain 100 observations. You should retain a random sample of 50 observations for yourself (the training set), and you will provide the remainder (the test set) to your partner.
+• Your data generating process should be some function (not necessarily an additive function) of 2-4 features. You may provide your partner with more than 4 features, but if you do then do not identify the red herring(s). One of the features you use must be called “treatment” and represent receipt of a treatment or intervention.
+• E.g., your formula could be:
+Outcomes = 20*Age + 50*(Education)^2 - 2*Gender + 4*treat*gender + 10*treat + treat/(log(income) + N(0, 10)…
+and then you would give give your partner a dataframe with outcomes, age, education, gender, treat, and income.
+• You do not have to ‘balance’ your features in any way, and in particular, you don’t have to balance them with respect to treatment assignment. For example, you can
+• Your error term must be normally distributed with a mean of zero.
+• Do not overthink this. The entire exercise should take you no more than 30 minutes. POST QUESTIONS ON SLACK!!!
+• Upload your data in .csv (comma-delimited) format to the Internet (e.g., on your Google Drive) and make it shareable with anyone who has the link.
+• Put (a) the link to your data and (b) your paragraph in a shareable Google Doc.
+• Create one or more simple data visualization(s) showing essential aspects of the data you created. Have the dataviz ready for class, but do not share it with other students.
+You will not work on any aspect of this pre-class work with the other person assigned to your group. However, you will be working with this person in class, and you will swap problems and data with this person after class.
+
+
+```{r}
+
+set.seed(100)
+gender <- rbinom(100,1,.5)
+age <- sample(18:80, 100, replace = TRUE, prob = rnorm(63, .5, .2))
+education <- sample(6:20, 100, replace = TRUE, prob = rnorm(15, .5, .2))
+treat <- rbinom(100,1,.5)
+income <- rnorm(100, 2000, 500)
+outcome <- 200*age + (income^2)*(gender+.5) + education^2/(treat+1)
+
+adrian_data <- data.frame(gender, age, education, income, treat, outcome)
+plot(adrian_data, col=treat+1)
+
+plot(density(adrian_data$outcome[adrian_data$treat]))
+lines(density(adrian_data$outcome[adrian_data$treat == 0]), col=2)
+write.csv(adrian_data, file="adrian_data.csv")
+
+```
