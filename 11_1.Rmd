@@ -33,15 +33,21 @@ age <- sample(18:80, 100, replace = TRUE, prob = rnorm(63, .5, .2))
 education <- sample(6:20, 100, replace = TRUE, prob = rnorm(15, .5, .2))
 treat <- rbinom(100,1,.5)
 income <- rnorm(100, 2000, 500)
-outcome <- 200*age + (income^2)*(gender+.5) + education^2/(treat+1)
+outcome <- age^2 + (income)*(gender+.5) + education^2/(treat+1) + rnorm(100, 0, 50)
 
 adrian_data <- data.frame(gender, age, education, income, treat, outcome)
+training <- adrian_data[1:50,]
+test <- adrian_data[51:100,]
 plot(adrian_data, col=treat+1)
 
 plot(density(adrian_data$outcome[adrian_data$treat]))
 lines(density(adrian_data$outcome[adrian_data$treat == 0]), col=2)
 library(foreign)
-write.csv(adrian_data, file="adrian_data.csv")
-write.dta(adrian_data, file="adrian_data.dta")
+write.csv(training, file="11_1_adrian_training.csv")
+write.dta(training, file="11_1_adrian_training.dta")
+write.csv(test, file="11_1_adrian_test.csv")
+write.dta(test, file="11_1_adrian_test.dta")
+write.csv(adrian_data, file="11_1_adrian.csv")
+write.dta(adrian_data, file="11_1_adrian.dta")
 
 ```
