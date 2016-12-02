@@ -51,3 +51,63 @@ write.csv(adrian_data, file="11_1_adrian.csv")
 write.dta(adrian_data, file="11_1_adrian.dta")
 
 ```
+
+## Test RSME and R^2 for true model 
+
+```{r}
+res <- sum((test$outcome - test$age^2 + (test$income)*(test$gender+.5) + test$education^2/(test$treat+1))^2 )
+rsme.adrian.test <- sqrt( res / length(test$outcome) )
+
+tss <- sum((test$outcome - mean(test$outcome))^2)
+r2.adrian.test <- 1 - (res/tss)
+```
+
+
+## Class Activity Local Regression
+
+```{r}
+data_diamond <- load('~/Downloads/cs112.RData')
+right_order <- order(x1)
+x <- x1[right_order]
+y <- y1[right_order]
+plot(x,y)
+
+fit2.0 <- loess(y~x, span = 2, degree = 1) # fit the regression
+
+fit1.0 <- loess(y~x, span = 1, degree = 1) # fit the regression
+fit.5 <- loess(y~x, span = 0.5, degree = 1) # fit the regression
+fit.4 <- loess(y~x, span = 0.4, degree = 1)
+fit.35 <- loess(y~x, span = 0.35, degree = 1)
+fit.3 <- loess(y~x, span = 0.3, degree = 1) # fit the regression
+fit.2 <- loess(y~x, span = 0.2, degree = 1)
+fit.25 <- loess(y~x, span = 0.25, degree = 1)
+fit.1 <- loess(y~x, span = 0.1, degree = 1)
+fit.05 <- loess(y~x, span = 0.05, degree = 1)
+
+lines(x, predict(fit.35, x), lwd = 3, col = "red") # add lines to plot
+lines(x, predict(fit.4, x), lwd = 3, col = "blue") # add lines to plot
+lines(x, predict(fit.3, x), lwd = 3, col = "green")# add lines to plot
+lines(x, predict(fit.25, x), lwd = 3, col = "black")
+lines(x, predict(fit2.0, x), lwd = 3, col = "purple")
+
+
+rmse1.0 <- sqrt( mean( (y - predict(fit1.0))^2 ) ) #calculate RMSE
+rmse.5 <- sqrt( mean( (y - predict(fit.5))^2 ) ) # calculate RMSE
+rmse.3 <- sqrt( mean( (y - predict(fit.3))^2 ) ) # calculate RMSE
+rmse2.0 <- sqrt( mean( (y-predict(fit2.0))^2))
+rmse.05 <- sqrt( mean( (y-predict(fit.05))^2))
+rmse.35.train <- sqrt( mean( (y-predict(fit.35))^2))
+
+rmse.35.train
+
+test_data <- load('~/Downloads/cs112test.RData')
+right_order <- order(x2)
+x2 <- x2[right_order]
+y2 <- y2[right_order]
+plot(x,y)
+
+rmse.5.test <- sqrt( mean( (y2-predict(fit.5))^2))
+points(x2,y2, col="red")
+rmse.35.test
+```
+

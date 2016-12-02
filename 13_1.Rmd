@@ -1,0 +1,114 @@
+---
+title: "13_1"
+author: "Adrian Goedeckemeyer"
+date: "11/26/2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## ISLR Chapter 5 Lab:
+
+### Validation Set Approach
+```{r}
+library(ISLR)
+set.seed(1)
+train <- sample(392,196)
+lm.fit <- lm(mpg~horsepower ,data=Auto,subset=train)
+
+attach(Auto)
+mean((mpg-predict(lm.fit,Auto))[-train]^2)
+
+lm.fit2=lm(mpg~poly(horsepower ,2),data=Auto,subset=train)
+mean((mpg-predict(lm.fit2,Auto))[-train]^2)
+
+lm.fit3=lm(mpg~poly(horsepower ,3),data=Auto,subset=train)
+mean((mpg-predict(lm.fit3,Auto))[-train]^2)
+
+```
+
+### LOOCV
+
+```{r}
+glm.fit <- glm(mpg~horsepower, data=Auto)
+coef(glm.fit)
+
+library(boot)
+cv.err <- cv.glm(Auto, glm.fit)
+cv.err$delta
+
+cv.error <- rep(0,5)
+for (i in 1:5){
+  glm.fit <- glm(mpg~poly(horsepower,i), data= Auto)
+  cv.error[i] <- cv.glm(Auto, glm.fit)$delta[1]
+}
+cv.error
+
+```
+
+### k-fold Cross Validation
+
+```{r}
+cv.error.10 = rep(10)
+for (i in 1:10){
+  glm.fit <- glm(mpg~poly(horsepower,i), data= Auto)
+  cv.error.10[i] <- cv.glm(Auto, glm.fit, K=10)$delta[1]
+}
+cv.error.10
+```
+
+### Bootstrap
+
+```{r}
+alpha.fn <- function(data,index){
+  X <- data$X[index]
+  Y <- data$Y[index]
+  return((var(Y)-cov(X,Y))/var(X)+var(Y)-2*cov(X,Y))
+}
+
+alpha.fn(Portfolio, 1:100)
+
+alpha.fn(Portfolio, sample(100,100,replace=T))
+
+boot(Portfolio, alpha.fn, R=1000)
+
+boot.fn <- function(data,index){
+  return(coef(lm(mpg~horsepower, data=data, subset=index)))
+}
+
+boot.fn(Auto, 1:392)
+
+boot(Auto, boot.fn, 1000)
+```
+
+# Prep-Work
+
+(a) Produce a population by drawing 10000 observations from this Normal distribution: rnorm(10000, 0, 5).
+
+```{r}
+pop <- rnorm(10000, 0, 5)
+```
+
+
+(b) Randomly select 15 observations without replacement using the “sample” function (replace = FALSE).
+
+```{r}
+obs <- sample(pop, 15, replace = FALSE)
+```
+
+
+(c) This n = 15 sample is your sample. Write code that produces bootstrapped confidence intervals for the population mean (known to be zero in this case). Compare this confidence interval to a classic t-distribution confidence interval (like you learned in FA). How does these two sets of confidence intervals differ? Recall that the t-distribution is purportedly useful when sample sizes are relatively small but the underlying population closely approximates a Normal distribution.
+
+```{r}
+boot.mean <- function(data, index){
+  return(mean(data[index]))
+}
+
+boot.result <- boot(obs, boot.mean, 1000)
+```
+
+
+(d) Now replicate steps (a) through (c) 100,000 times and ascertain whether the population mean falls within BOTH confidence intervals for at least 95% of the simulated trials.
+(e) Optional: create a different “population” that is highly non-Normal (e.g., skewed, bimodal, or close to uniform) and repeat steps (a) through (d) above. Do you reach different conclusions about the reliability of these intervals when the underlying population distribution is highly non-Normal?

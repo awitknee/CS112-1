@@ -1,0 +1,80 @@
+---
+title: "11_2"
+author: "Adrian Goedeckemeyer"
+date: "11/15/2016"
+output: html_document
+---
+
+## Statistical Learning: Analysis
+
+```{r}
+require('foreign')
+load('~/Downloads/haha.RData')
+
+lm.4 <- lm (post.test ~ treatment + pre.test + I(treatment*pre.test))
+display (lm.4)
+
+
+lm.4.sim <- sim (lm.4)
+coef(lm.4.sim)  # explore the simulated coefficients 
+                # all equally likely under this model
+
+plot (0, 0, xlim=c(80, 120), ylim=c(-5,10),
+      xlab="pre-test", ylab="treatment effect", 
+      main="treatment effect in grade 4")
+
+
+abline (h = 0, lwd=.5, lty=2) # draws a horizontal line
+
+abline (a = coef(lm.4.sim)[1,2], b = coef(lm.4.sim)[1,4], lwd = .5, col = "gray")
+
+for (i in c(1:100)){
+  abline (a = coef(lm.4.sim)[i,2], b = coef(lm.4.sim)[i,4], lwd = .5, col = "gray")
+
+}
+
+a.mean <- mean(coef(lm.4.sim)[,2])
+b.mean <- mean(coef(lm.4.sim)[,4])
+
+a.sd <- sd(coef(lm.4.sim)[,2])
+b.sd <- sd(coef(lm.4.sim)[,4])
+
+abline (a = a.mean, b = b.mean, lwd = 2, col = "black")
+abline (a = a.mean+a.sd, b = b.mean+b.sd, lwd = 1, col = "green")
+abline (a = a.mean-a.sd, b = b.mean-b.sd, lwd = 1, col = "red")
+
+confint(lm.4)
+
+quantile(coef(lm.4.sim)[,2], c(.025,.975))
+quantile(coef(lm.4.sim)[,4], c(.025,.975))
+```
+
+
+# Matt's Data
+
+There were children in the inner city who were dumb dumvs. They wanted to go to school. They had a special smart pill that some of them took. Let's see if it worked!
+
+
+```{r}
+data <- read.csv('~/Downloads/foo.csv')
+
+data <- data[c("income","gpa","parentAge","studentAge","teacherXP","treatment","readiness")]
+summary(data)
+names(data)
+plot(data)
+fit.matt <- lm( readiness ~ income + gpa + parentAge + I(studentAge^1) + treatment, data = data)
+summary(fit.matt)
+
+
+fit.matt2 <- loess(readiness ~ income + studentAge + teacherXP +treatment, data= data, span = 1, degree = 1) # fit the regression
+summary(fit.matt2)
+
+fit.matt2 <- loess(readiness ~ income + studentAge + teacherXP +treatment, data= data, span = .7, degree = 1) # fit the regression
+summary(fit.matt2)
+
+fit.matt2 <- loess(readiness ~ income + studentAge + teacherXP +treatment, data= data, span = .5, degree = 1) # fit the regression
+
+
+summary(fit.matt2)
+```
+

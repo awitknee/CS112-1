@@ -1,0 +1,111 @@
+---
+title: 'United Nations Policy Recommendation: Predicting Impacts of UN Intervention'
+author: "Adrian Goedeckemeyer"
+date: "11/24/2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# United Nations Policy Recommendation: Predicting Impacts of UN Intervention
+
+## Overview over the Data
+
+```{r}
+require(foreign)
+data_raw <- read.dta("~/Downloads/peace.dta")
+names(data_raw)
+length(data_raw$dataset)
+
+data <- subset(data_raw, select = c("pbs2s3","un2int","wartype","logdead","wardur","factnum","trnsfcap","develop","exp","decade","treaty","geo","eh","electric"))
+
+library(Amelia)
+missmap(data, main = "Missing values vs observed")
+
+set.seed(16)
+```
+
+## Test and Training Set
+
+```{r}
+train <- sample(data$pbs2s3, 124, replace = F) 
+```
+
+## Logistic Regression Model
+
+```{r}
+glm.fit <- glm(pbs2s3 ~ un2int + wartype + logdead + wardur + factnum + trnsfcap + develop + exp + decade + treaty + geo + eh + electric, data = data[train == 1,], family = binomial)
+summary(glm.fit)
+coef(glm.fit)
+```
+
+## Making Predictions
+
+```{r}
+glm.probs <- predict(glm.fit, type="response", newdata = data)
+data$outcome <- factor(data$pbs2s3, levels = c(0,1), labels = c("Failure", "Success"))
+```
+
+### Assessing prediction accuracy for different classification thresholds
+```{r}
+
+plot_threshold <- function(glm.probs) {
+  plot(c(1:100/100), c(1:100/100), type = "n", xlab = "Classification Threshold", ylab = "Accuracy")
+  title("Prediction Accuracy for different Classification Thresholds")
+  legend("right", c("Out Of Sample", "In Sample", "Type 1 Error", "Type 2 Error"), pch = 19, col= c("red","blue","green", "orange"))
+
+  for ( p in c(0:200/200)) {
+    glm.pred <- rep("Failure",124)
+    glm.pred[glm.probs > p ]="Success"
+    points(p, mean(glm.pred[train == 0]==data$outcome[train == 0]),  col = "red", pch = 20)
+    points(p, mean(glm.pred[train == 1]==data$outcome[train == 1]),  col = "blue", pch = 20)
+    points(p, sum((glm.pred[train == 0] == "Failure") * (data$outcome[train == 0] == "Success"))/length(data$un2int), col = "green", pch = 20)
+    points(p, sum((glm.pred[train == 0] == "Success") * (data$outcome[train == 0] == "Failure"))/length(data$un2int), col = "orange", pch = 20)
+  }
+}
+plot_threshold(glm.probs)
+
+library(ROCR)
+pr <- prediction(glm.probs[train == 0], data$outcome[train == 0])
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf, col = "red")
+
+glm.pred <- rep("Failure",124)
+glm.pred[glm.probs >.3]="Success"
+```
+
+### In Sample Prediction Accuracy
+
+```{r}
+table(glm.pred[train == 1], data$outcome[train == 1])
+mean(glm.pred[train == 1]==data$outcome[train == 1])
+```
+
+### Out of Sample Prediction Accuracy:
+
+```{r}
+table(glm.pred[train == 0], data$outcome[train == 0])
+mean(glm.pred[train == 0]==data$outcome[train == 0])
+```
+
+### Lets crossvalidate instead:
+
+```{r}
+library(boot)
+cv.error = rep(7)
+for (i in 1:7){
+  glm.fit <- glm(pbs2s3 ~ un2int + wartype + poly(logdead,i) + wardur + factnum + trnsfcap + develop + exp + decade + treaty + geo + eh + electric, data = na.omit(data), family = binomial)
+  cv.error[i] <- cv.glm(na.omit(data), glm.fit, K=10)$delta[1]
+}
+cv.error
+plot(1:7,cv.error)
+
+glm.fit <- glm(pbs2s3 ~ un2int + wartype + logdead + wardur + factnum + trnsfcap + develop + exp + decade + treaty + geo + eh + electric, data = na.omit(data), family = binomial)
+cv.fit <- cv.glm(na.omit(data), glm.fit, K=10)
+plot_threshold(predict(glm.fit, type="response", newdata = data))
+cv.fit$delta[1]
+```
+
+ 

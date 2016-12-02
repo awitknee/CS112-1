@@ -53,4 +53,3 @@ rdrobust(y = data$After, x = data$Initial, all = TRUE, c = 101, h = 65)
 
 ```
 
-
