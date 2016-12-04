@@ -1,20 +1,3 @@
----
-title: 'United Nations Policy Recommendation: Predicting Impacts of UN Intervention'
-author: "Adrian Goedeckemeyer"
-date: "11/24/2016"
-output: html_document
----
-
-```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
-                       warning=FALSE, message=FALSE)
-```
-
-# United Nations Policy Recommendation: Predicting Impacts of UN Intervention
-
-## Overview over the Data
-
-```{r}
 require(foreign)
 data_raw <- read.dta("~/Downloads/peace.dta")
 names(data_raw)
@@ -28,37 +11,30 @@ library(Amelia)
 missmap(data, main = "Missing values vs observed")
 
 set.seed(1)
-```
 
-## Test and Training Set
 
-```{r}
+# Test and Training Set
+
 train <- sample(1:nrow(data), 70)
 
-```
 
-## Logistic Regression Model
+# Logistic Regression Model
 
-```{r}
 glm.fit <- glm(outcome ~ . , data = data[train,], family = binomial)
 summary(glm.fit)
 coef(glm.fit)
-```
 
-## Making Predictions
+# Making Predictions
 
-```{r}
 glm.probs <- predict(glm.fit, type="response", newdata = data)
-```
 
-### Assessing prediction accuracy for different classification thresholds
-```{r}
+# Assessing prediction accuracy for different classification thresholds
 
 plot_threshold <- function(glm.probs, train) {
   plot(c(1:100/100), c(1:100/100), type = "n", xlab = "Classification Threshold", ylab = "Accuracy")
   title("Prediction Accuracy for different Classification Thresholds")
   legend("right", c("Out Of Sample", "In Sample", "Type 1 Error", "Type 2 Error"), pch = 19, col= c("red","blue","green", "orange"))
-
+  
   for ( p in c(0:200/200)) {
     glm.pred <- rep("Failure",124)
     glm.pred[glm.probs > p ]="Success"
@@ -77,25 +53,19 @@ plot(prf, col = "red")
 
 glm.pred <- rep("Failure",124)
 glm.pred[glm.probs >.3]="Success"
-```
 
-### In Sample Prediction Accuracy
+# In Sample Prediction Accuracy
 
-```{r}
 table(glm.pred[train], data$outcome[train])
 mean(glm.pred[train]==data$outcome[train])
-```
 
-### Out of Sample Prediction Accuracy:
+# Out of Sample Prediction Accuracy:
 
-```{r}
 table(glm.pred[-train], data$outcome[-train])
 mean(glm.pred[-train]==data$outcome[-train])
-```
 
-### Lets crossvalidate instead:
+# Lets crossvalidate instead:
 
-```{r}
 library(boot)
 cv.error = rep(7)
 for (i in 1:7){
@@ -115,11 +85,9 @@ summary(glm_final.fit)
 glm_final.fit$coefficients
 plot_threshold(predict(glm.fit, type="response", newdata = data),train)
 
-```
 
-## Let's grow some trees:
+# Let's grow some trees:
 
-```{r}
 library(tree)
 
 tree.peace <- tree(outcome~.,data)
@@ -151,11 +119,9 @@ text(prune.peace,pretty=0)
 tree.pred=predict(prune.peace,peace.test,type="class")
 table(tree.pred, peace.test$outcome)
 mean(tree.pred == peace.test$outcome)
-```
 
-## Let's grow a random forest
+# Let's grow a random forest
 
-```{r}
 library(randomForest)
 rf.peace = randomForest(outcome~., data=na.omit(data[train,]), importance =TRUE)
 outcome.rf = predict(rf.peace ,newdata=data[-train ,])
@@ -163,5 +129,3 @@ table(outcome.rf, peace.test$outcome)
 40/52
 importance(rf.peace)
 varImpPlot(rf.peace)
-```
-
