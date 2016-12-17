@@ -112,3 +112,254 @@ boot.result <- boot(obs, boot.mean, 1000)
 
 (d) Now replicate steps (a) through (c) 100,000 times and ascertain whether the population mean falls within BOTH confidence intervals for at least 95% of the simulated trials.
 (e) Optional: create a different “population” that is highly non-Normal (e.g., skewed, bimodal, or close to uniform) and repeat steps (a) through (d) above. Do you reach different conclusions about the reliability of these intervals when the underlying population distribution is highly non-Normal?
+
+```{r}
+# load library that enables progress bars (OPTIONAL)
+library(tcltk)
+
+
+# # # FIRST, code that produces bootstrap confidence intervals of a normal distribution
+# preliminary housekeeping
+set.seed(12345)
+george <- rnorm(10000, 0, 5)
+sample15 <- george[sample(1:10000, 15, replace = FALSE)] # sample of size 15
+
+
+# set number of bootstrap samples
+nboots = 1000
+
+
+# create storage matrix
+samp <- c()
+
+
+# create a progress bar (OPTIONAL)
+pb <- tkProgressBar(title = "progress bar", min = 0,
+                    max = nboots, width = 300)
+
+
+# AFTER creating the progress bar, you may need to click back in HERE
+
+
+# bootstrap, first setting random seed
+set.seed(9876)
+
+
+for(i in 1:nboots)
+{
+  samp[i] <- mean(sample15[sample(1:15, 15, replace = TRUE)])
+  setTkProgressBar(pb, i, label=paste( round(i/nboots*100, 0), "% done"))
+}
+
+
+# close the progress bar
+close(pb)
+
+
+# produce results
+boot.upper <- quantile(samp, prob = 0.975)
+boot.lower <- quantile(samp, prob = 0.025)
+# # #
+
+
+# compare to a t-distribution interval
+standard.error <- sd(sample15) / sqrt(15)
+t.statistic <- qt(p = 0.975, df = 14)
+t.upper <- mean(sample15) + t.statistic*standard.error
+t.lower <- mean(sample15) - t.statistic*standard.error
+
+
+# # # Report Results
+
+
+cat("\nBoot Upper Bound is:", boot.upper, "; Boot Lower Bound is:", boot.lower, "...")
+cat("\nConventional Upper Bound is:", t.upper, "; Conventional Lower Bound is:", t.lower, "...")
+
+
+# # # Second, evaluate the coverage of the bootstrap confidence intervals
+# # # by running the bootstrap repeatedly and checking each time to see if the 
+# # # true population statistics is covered by the confidence interval.
+# # # Evaluate the coverage...
+
+
+# create two storage vectors, to record whether the conf int covers the true value
+covers.boot <- c()  # for bootstrapped confidence intervals
+covers.t <- c()     # for t-distribution confidence intervals
+
+
+# create a few other storage vectors (see how they are used in the loop below)
+samp.trials <- c() # this is where the bootstrapped means are stored for each bootstrapped trial
+
+
+t.upper.trials <- c()
+t.lower.trials <- c()
+
+
+boot.upper.trials <- c()
+boot.lower.trials <- c()
+
+
+# set the number of trials
+numtrials <- 1000
+
+
+# create a progress bar (optional)
+pb <- tkProgressBar(title = "progress bar", min = 0,
+                    max = numtrials, width = 300)
+
+
+# set number of boots per trial
+nbootspertrial = 1000
+
+
+## ATTEMPT 1, with 'georgina', a Normal distribution
+set.seed(8475)
+for (i in 1:numtrials) {
+  georgina <- rnorm(10000, mean = 0, sd = 5) # alternatively, try rt(10000, df = 14)
+  samp15 <- georgina[sample(1:10000, 15, replace = FALSE)]
+  
+  for(j in 1:nbootspertrial)
+  {
+    samp.trials[j] <- mean(samp15[sample(1:15, 15, replace = TRUE)])
+  }
+  
+  boot.upper.trials[i] <- quantile(samp.trials, prob = 0.975)
+  boot.lower.trials[i] <- quantile(samp.trials, prob = 0.025)
+  
+  t.upper.trials[i] <-  mean(samp15) + sd(sample15) / sqrt(15) * qt(p = 0.975, df = 14)
+  t.lower.trials[i] <-     mean(samp15) - sd(sample15) / sqrt(15) * qt(p = 0.975, df = 14)
+
+
+  covers.boot[i] <- mean(georgina) <= boot.upper.trials[i] & mean(georgina) >= boot.lower.trials[i]
+  covers.t[i] <-  mean(georgina) <=  t.upper.trials[i] & mean(georgina) >=  t.lower.trials[i]
+
+
+  setTkProgressBar(pb, i, label=paste( round(i/numtrials*100, 0), "% done"))
+  
+}
+
+
+# close the progress bar
+close(pb)
+
+
+# coverage percentages
+boot.cover.percent <- sum(covers.boot)/length(covers.boot)
+t.cover.percent <- sum(covers.t)/length(covers.t)
+
+
+cat("\nBoot Coverage is:", boot.cover.percent, "; t Coverage is:", t.cover.percent, "...")
+
+
+# # # ATTEMPT 2, with 'horace', a bimodal distribution
+
+
+# to see the bimodal distribution, remove the "#'s in the two lines below, and run them...
+mm <- c(-1*rlnorm(5000, 4, 0.25), rlnorm(5000, 6, 0.25))
+plot(density(mm), main = "Bimodal Distribution for Validating Conf Intervals")
+
+
+### REPEATING all the above "georgina" housekeeping for horace...
+# create two storage vectors, to record whether the conf int covers the true value
+covers.boot <- c()
+covers.t <- c()
+
+
+# create a few other storage vectors (see how they are used in the loop below)
+samp.trials <- c() # this is where the bootstrapped means are stored for each bootstrapped trial
+
+
+t.upper.trials <- c()
+t.lower.trials <- c()
+
+
+boot.upper.trials <- c()
+boot.lower.trials <- c()
+
+
+# set the number of trials
+numtrials <- 1000
+
+
+# create a progress bar (optional)
+pb <- tkProgressBar(title = "progress bar", min = 0,
+                    max = numtrials, width = 300)
+
+
+# set number of boots per trial
+nbootspertrial = 1000
+
+
+set.seed(8475)
+for (i in 1:numtrials) {
+  horace <- c(-1*rlnorm(5000, 4, 0.25), rlnorm(5000, 6, 0.25))
+  samp15 <- horace[sample(1:10000, 15, replace = FALSE)]
+  
+  for(j in 1:nbootspertrial)
+  {
+    samp.trials[j] <- mean(samp15[sample(1:15, 15, replace = TRUE)])
+  }
+  
+  boot.upper.trials[i] <- quantile(samp.trials, prob = 0.975)
+  boot.lower.trials[i] <- quantile(samp.trials, prob = 0.025)
+  
+  t.upper.trials[i] <-  mean(samp15) + sd(samp15) / sqrt(15) * qt(p = 0.975, df = 14)
+  t.lower.trials[i] <-     mean(samp15) - sd(samp15) / sqrt(15) * qt(p = 0.975, df = 14)
+  
+  covers.boot[i] <- mean(horace) <= boot.upper.trials[i] & mean(horace) >= boot.lower.trials[i]
+  covers.t[i] <-  mean(horace) <=  t.upper.trials[i] & mean(horace) >=  t.lower.trials[i]
+  
+  setTkProgressBar(pb, i, label=paste( round(i/numtrials*100, 0), "% done"))
+  
+}
+
+
+# close the progress bar
+close(pb)
+
+
+# coverage percentages
+boot.cover.percent <- sum(covers.boot)/length(covers.boot)
+t.cover.percent <- sum(covers.t)/length(covers.t)
+cat("\nBoot Coverage is:", boot.cover.percent, "; t Coverage is:", t.cover.percent, "...")
+
+```
+
+
+```{r}
+library(Matching)
+data(lalonde)
+
+
+x <- lalonde$treat
+y <- lalonde$re78
+
+
+reg1 <- lm(y ~ x)
+
+
+# this gives you the regression results
+summary(reg1)
+
+
+# this gives you just the results relevant to coefficients
+summary(reg1)$coef
+
+
+# this gives you the key result (the standard error for the ‘treatment’ variable)
+summary(reg1)$coef[4]
+
+se_vector <- c()
+for (i in c(0:1000)) {
+  obs = sample(1:445, 445, replace = T)
+  x <- lalonde$treat[obs]
+  y <- lalonde$re78[obs]
+
+  reg1 <- lm(y ~ x)
+	se_vector[i] = summary(reg1)$coef[4]
+}
+
+sd(se_vector)/sqrt(1000)
+
+```
+

@@ -1,0 +1,47 @@
+---
+title: "Fisher Exact Test"
+author: "Adrian Goedeckemeyer"
+date: "10/10/2016"
+output: html_document
+---
+
+```{r}
+
+fisher <- function(outcome_treatment, outcome_control, sharp_null, n) {
+  observed_diff <- mean(outcome_treatment) - mean(outcome_control)
+  effects <- c()
+  
+  for (experiment in 1:n){
+    treat <- c()
+    control <- c()
+    for (element in outcome_treatment){
+      if (sample(1:2, size = 1) == 1){
+        treat <- c(treat, element)
+      } else {
+        control <- c(control, element + sharp_null)
+      }
+    }
+    for (element in outcome_control){
+      if (sample(1:2, size = 1) == 1){
+        treat <- c(treat, element - sharp_null)
+      } else {
+        control <- c(control, element)
+      }
+    }
+    if (length(control > 0 ) && length(treat) > 0){
+      effects <- c(effects, mean(treat) - mean(control))
+    }
+  }
+  plot(density(effects))
+  abline(v=observed_diff, col="red")
+  return(length(effects[effects > observed_diff])/length(effects))
+}
+
+```
+
+```{r}
+control_group <- c(55,72,72.7)
+treatment_group <- c(70,66,78.9)
+fisher(treatment_group, control_group, 0, 100)
+```
+
