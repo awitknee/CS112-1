@@ -121,26 +121,13 @@ par(mfrow=c(1,1))
 
 ## Simulation of increased Migration
 
-Similar to what has been done by Arzheimer and Javed and Gidron we attempt to illustrate what happens if we keep all variables fixed and only increase the immigration variable from it's minimum to it's maximum. For all continuous variables we have chosen their mean, for the classification data we picked random valid values, as these only determine the baseliine, but not the slope of the graph, due to no interactions with the migration variable.
+Similar to what has been done by Arzheimer and Javed and Gidron we attempt to illustrate what happens if we keep all variables fixed and only increase the immigration variable from it's minimum to it's maximum. For all continuous variables we have chosen their mean, for variables with levels we choose the one connected to most likely ER vote, as these only determine the baseliine, but not the slope of the graph, due to no interactions with the migration variable.
 
 The values picked by us predict a relatively high probability of voting for ER, but the impact of migration is almost linear and not especially strong.
 
 ```{r}
 
-##Create matrix for all variables.
-
-mat.mig <- cbind(new.data$rexvote, new.data$male, new.data$age1, new.data$age2, new.data$age4, new.data$mye1, new.data$mye2, new.data$farmerown, new.data$worker, new.data$retired, new.data$unemployed, new.data$zlrs, new.data$euschlecht, new.data$zsatisdmo, new.data$disp, new.data$lfed1, new.data$migration, new.data$sur, new.data$replacementrate, new.data$rmax, new.data$salienzmean, new.data$rvar, new.data$at, new.data$be, new.data$deo, new.data$dew, new.data$dk, new.data$es, new.data$fi, new.data$fr, new.data$gr, new.data$it, new.data$nl, new.data$no, new.data$pt, new.data$se, new.data$country)
-
-##Label matrix.
-
-colnames(mat.mig) <- c("rexvote","male","age1","age2","age4","mye1","mye2","farmerown","worker","retired","unemployed","zlrs","euschlecht","zsatisdmo","disp","lfed1","migration","sur","replacementrate","rmax","salienzmean","rvar","AT", "BE","DE-E","DE-W","DK","ES","FI","FR","GR","IT","NL","NO","PT","SE","country")
-
-##Omit missing data and create x matrix.
-
-mat.mig2 <- na.omit(mat.mig)
-mat.mig3 <- mat.mig2[,-1]
-
-##Create means for all variables.
+##Create means for all variables or set predetermined level.
 
 means.mig <- c(0,1,0,0,1,0,0,0,0,1,-0.2823178,0.1254217,-0.09784655,4.614493,2.663593,0,8.295773,36.87453,5.586569,8.7076,16.40313,0)
 names(means.mig) <- c("male","age1","age2","age4","mye1","mye2","farmerown","worker","retired","unemployed","zlrs","euschlecht","zsatisdmo","disp","lfed1","migration","sur","replacementrate","rmax","salienzmean","rvar","country")
@@ -163,9 +150,9 @@ lines(mig, ests.mig)
 abline(h=0)
 ```
 
-We conclude that overall our results do not look to different from what Arzheimer and the previous replication have identified. Due to lack of familiarity with some libraries used, we did not simulate the variance as they have done and thus have less detailed results, but were able to extract the gist of their graphics. 
+We conclude that overall our results do not look to different from what Arzheimer and the previous replication have identified. Due to lack of familiarity with some libraries used by the original author(s), we did not simulate the variance as they have done and thus have less detailed results, but were able to extract the gist of their graphics. 
 
-As this model has brought as little insights, we want to now attempt a classification tree and random forest model to predict ER.
+We want to now attempt a classification tree and random forest model to predict ER and compare predictive power as well as variable importance
 
 ## Classification Tree
 
@@ -241,7 +228,9 @@ colnames(X) <- c("male","age1","age2","age4","farmerown","worker","retired","une
 
 BalanceMat <- X
 
-##gmout <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size = 7, max.generations = 15, caliper = c(1,1,1,1,1,1,1,1,1,.5,.1,.1,.3,.04,.03,1,1,1,1,1,1,1,1,1,1,1,1,1,1), wait.generations = 2)
+## Skipping GenMatch in knitted HTMl file, as it takes over an hour to complete and determines the ideal weights to be 1 for each variable under this caliper (we can do exact matching)
+##gmout <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size = 20, max.generations = 15, caliper = c(1,1,1,1,1,1,1,1,1,.5,.1,.1,.3,.01,.01,1,1,1,1,1,1,1,1,1,1,1,1,1,1), wait.generations = 3)
+
 match <- Match(Y=Y, Tr=Tr, X=X, caliper = c(1,1,1,1,1,1,1,1,1,.5,.1,.1,.3,.01,.01,1,1,1,1,1,1,1,1,1,1,1,1,1,1))
 summary(match)
 mb <- MatchBalance(Tr ~ X, match.out=match, nboots=100)
