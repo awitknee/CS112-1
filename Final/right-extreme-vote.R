@@ -1,19 +1,3 @@
----
-title: "Impact of Immigration on Extreme Right Vote"
-author: "Adrian Goedeckemeyer"
-date: "11/12/2016"
-output: html_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## Data Preparation
-
-We combine the dataset from Arzheimers study (2009) with data on yearly immigration and percent of population that are foreign that were used in the replication by Javed and Gidron (2011). Parts of the data preparation are similar to their process
-
-```{r}
 require(foreign)
 
 load('~/Downloads/nonimp.RData')
@@ -52,13 +36,10 @@ new.data$country <- factor(new.data$sortcountry, labels=c("AT", "BE","DE-E","DE-
 sum(new.data$country[new.data$it==1]!="IT")==0
 sum(new.data$country[new.data$deo==1]!="DE-E")==0
 
-```
 
 ## Replicate Regression
 
-As done by the Arzheimer paper, we are running a logistic regression, with the binary variable of extreme right vote as a dependent variable. We are copying their selection of covariates to test their model
 
-```{r}
 ## We will test the model used in the paper by using a testset validation approach
 
 set.seed(1)
@@ -85,47 +66,37 @@ mean(glm.pred[data.test$rexvote==0 || data.test$rexvote==1] == na.omit(data.test
 ## Refit with all data
 glm.fit <- glm(rexvote ~ male + age1 + age2 + age4 + mye1 + mye2 + farmerown + worker + retired + unemployed + zlrs + euschlecht + zsatisdmo + disp + lfed1 + migration + sur + migration:sur + replacementrate + sur:replacementrate + migration:replacementrate + rmax + salienzmean + rvar + rvar:salienzmean + country, family=binomial, data=new.data)
 
-```
 
 ## Look at Interaction effect between Immigration and Unemployemnt
 
-We use the library *interplots* to replicate what was done in the original study in a more complicated simulation. This library fullfills the needs and returns us an illustration of the effects. In our model there is only a minimal interaction effect detectable.
 
-```{r}
 library(interplot)
 par(mfrow=c(1,2))
 interplot(m = glm.fit, var1 = "sur", var2 = "migration", hist = TRUE) +
   # Add labels for X and Y axes
-    xlab("Migration Rate") +
-    ylab("Unemployment Coef") +
+  xlab("Migration Rate") +
+  ylab("Unemployment Coef") +
   # Change the background
-    theme_bw() +
+  theme_bw() +
   # Add the title
-    ggtitle("Estimated Coefficient of Unemployment on Extreme Right Vote by Migration") +
-    theme(plot.title = element_text(face="bold")) +
+  ggtitle("Estimated Coefficient of Unemployment on Extreme Right Vote by Migration") +
+  theme(plot.title = element_text(face="bold")) +
   # Add a horizontal line at y = 0
-    geom_hline(yintercept = 0, linetype = "dashed") 
+  geom_hline(yintercept = 0, linetype = "dashed") 
 
 interplot(m = glm.fit, var1 = "migration", var2 = "sur", hist = TRUE) +
   # Add labels for X and Y axes
-    xlab("Unemployment") +
-    ylab("Migration Coef") +
+  xlab("Unemployment") +
+  ylab("Migration Coef") +
   # Change the background
-    theme_bw() +
+  theme_bw() +
   # Add the title
-    ggtitle("Estimated Coefficient of Migration on Extreme Right Vote by Unemployment") +
-    theme(plot.title = element_text(face="bold"))
+  ggtitle("Estimated Coefficient of Migration on Extreme Right Vote by Unemployment") +
+  theme(plot.title = element_text(face="bold"))
 par(mfrow=c(1,1))
 
-```
 
 ## Simulation of increased Migration
-
-Similar to what has been done by Arzheimer and Javed and Gidron we attempt to illustrate what happens if we keep all variables fixed and only increase the immigration variable from it's minimum to it's maximum. For all continuous variables we have chosen their mean, for the classification data we picked random valid values, as these only determine the baseliine, but not the slope of the graph, due to no interactions with the migration variable.
-
-The values picked by us predict a relatively high probability of voting for ER, but the impact of migration is almost linear and not especially strong.
-
-```{r}
 
 ##Create matrix for all variables.
 
@@ -154,22 +125,18 @@ ests.mig <- matrix(data=NA, ncol=length(mig) ,nrow=1)
 
 for(j in 1:length(mig)){
   data.mig <- means.mig
-	data.mig$migration <- mig[j] 
-	ests.mig[j] <- predict(glm.fit, type="response", newdata = data.mig)
-	}
+  data.mig$migration <- mig[j] 
+  ests.mig[j] <- predict(glm.fit, type="response", newdata = data.mig)
+}
 
 plot(NA,NA, ylim= c(0.0,.25),xlim=c(-4,16.5), xlab="Net Migration Rate", ylab="Probability of Voting for the ER", main="The Effect of Net Migration on Voting for the ER", cex.main=1)
 lines(mig, ests.mig)
 abline(h=0)
-```
 
-We conclude that overall our results do not look to different from what Arzheimer and the previous replication have identified. Due to lack of familiarity with some libraries used, we did not simulate the variance as they have done and thus have less detailed results, but were able to extract the gist of their graphics. 
-
-As this model has brought as little insights, we want to now attempt a classification tree and random forest model to predict ER.
 
 ## Classification Tree
 
-```{r}
+
 library(tree)
 set.seed(2)
 
@@ -205,12 +172,10 @@ text(prune.er,pretty=0)
 tree.pred=predict(prune.er,new.data2[-train,],type="class")
 table(tree.pred, rexfactor[-train])
 mean(tree.pred == rexfactor[-train])
-```
-
 
 ## Random Forest Model
 
-```{r}
+
 library(randomForest)
 rf.er = randomForest(rexfactor ~ male + age1 + age2 + age4 + mye1 + mye2 + farmerown + worker + retired + unemployed + zlrs + euschlecht + zsatisdmo + disp + lfed1 + migration + sur + migration:sur + replacementrate + rmax + salienzmean + rvar + country, data=new.data2, subset = train, importance =TRUE)
 outcome.rf = predict(rf.er ,newdata=new.data2[-train,])
@@ -218,13 +183,9 @@ table(outcome.rf, rexfactor[-train])
 mean(outcome.rf == rexfactor[-train])
 importance(rf.er)
 varImpPlot(rf.er)
-```
 
 # Part 2: Effect of Higher Education
 
-After building regression models in which we saw that receiving university education lowers the logit score, we want to test if there is an actual effect of atending university on likelihood of voting for the extreme right. Towards this goal we will employ genetic matching. University education is the treatment variable and other personal as well as demographic data will be balanced on to estimate a treatment effect.
-
-```{r}
 library(Matching)
 
 set.seed(2)
@@ -262,6 +223,3 @@ lines(density(new.data3$migration[match$index.treated]), lwd = 2, col = "blue")
 # Sensitivity Analysis on these results
 require(rbounds)
 psens(match, Gamma = 2, GammaInc = 0.05)
-```
-
-
