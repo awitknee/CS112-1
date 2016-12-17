@@ -222,6 +222,7 @@ varImpPlot(rf.er)
 
 After building regression models in which we saw that receiving university education lowers the logit score, we want to test if there is an actual effect of atending university on likelihood of voting for the extreme right. Towards this goal we will employ genetic matching. University education is the treatment variable and other personal as well as demographic data will be balanced on to estimate a treatment effect.
 
+```{r}
 library(Matching)
 
 set.seed(2)
@@ -238,8 +239,8 @@ colnames(X) <- c("male","age1","age2","age4","farmerown","worker","retired","une
 
 BalanceMat <- X
 
-gmout <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size = 7, max.generations = 15, caliper = c(1,1,1,1,1,1,1,1,1,.5,.1,.1,.3,.04,.03,1,1,1,1,1,1,1,1,1,1,1,1,1,1), wait.generations = 2)
-match <- Match(Y=Y, Tr=Tr, X=X, caliper = c(1,1,1,1,1,1,1,1,1,.5,.1,.1,.3,.04,.03,1,1,1,1,1,1,1,1,1,1,1,1,1,1))
+##gmout <- GenMatch(Tr=Tr, X=X, BalanceMat=BalanceMat, estimand="ATT", pop.size = 7, max.generations = 15, caliper = c(1,1,1,1,1,1,1,1,1,.5,.1,.1,.3,.04,.03,1,1,1,1,1,1,1,1,1,1,1,1,1,1), wait.generations = 2)
+match <- Match(Y=Y, Tr=Tr, X=X, caliper = c(1,1,1,1,1,1,1,1,1,.5,.1,.1,.3,.01,.01,1,1,1,1,1,1,1,1,1,1,1,1,1,1))
 summary(match)
 mb <- MatchBalance(Tr ~ X, match.out=match, nboots=100)
 
@@ -255,6 +256,6 @@ lines(density(new.data3$salienzmean[match$index.treated]), lwd = 2, col = "blue"
 require(rbounds)
 psens(match, Gamma = 2, GammaInc = 0.05)
 hlsens(match, Gamma = 6, GammaInc = 0.2)
-
+```
 
 
