@@ -24,6 +24,12 @@ This Repo contains class preparation assignments and some graded assignments for
 
 [9.2 RDD continued](https://adriangoe.github.io/CS112/9_2)
 
+### Assignment: Effect of having a Daughter on Vote
+
+[Paper](https://github.com/adriangoe/CS112/blob/master/Daughter/Effect_Daughter_Vote_Paper.pdf)
+
+[Code and Output](https://adriangoe.github.io/CS112/Daughter/Washington_2008)
+
 ## Section 2: Statistical Learning
 
 [11.1 Local Regression](https://adriangoe.github.io/CS112/11_1)
@@ -33,4 +39,14 @@ This Repo contains class preparation assignments and some graded assignments for
 [12.1 Logistic Regression](https://adriangoe.github.io/CS112/12_1)
 
 [13.1 Validation Methods and Bootstrap](https://adriangoe.github.io/CS112/13_1)
+
+### Assignment: UN peacekeeping prediction
+
+[Paper](https://github.com/adriangoe/CS112/blob/master/UN/UN_Peacekeeping_Prediction_Paper.pdf)
+
+[Code and Output](https://adriangoe.github.io/CS112/UN/UN_peacekeeping_success)
+
+## Final Assignment: Right Extreme Vote in Europe, Replication Study
+
+[README](https://github.com/adriangoe/CS112/tree/master/Final)
 
